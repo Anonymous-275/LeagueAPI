@@ -7,8 +7,8 @@
 #include "Logger.h"
 
 int main() {
-    RiotAPI API("RGAPI-af2ded68-2272-460e-a0cb-678dda32ee33", RiotAPI::NA);
-    auto Summoner = API.SummonerByName("Buelow");
+    RiotAPI API("RGAPI-af2ded68-2272-460e-a0cb-678dda32ee33", RiotAPI::EUW);
+    auto Summoner = API.SummonerByName("Anonymous275");
     LOG(INFO) << Summoner.name << " level " << Summoner.summonerLevel;
     auto Match = API.GetSummonerActiveGame(Summoner);
     for(const auto& entry : Match.participants) {
