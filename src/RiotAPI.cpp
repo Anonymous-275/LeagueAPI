@@ -59,8 +59,9 @@ void RiotAPI::Request(const std::string& Option) {
 }
 
 bool RiotAPI::HasErrors() {
-    if(JsonParser_.HasParseError() || !JsonParser_["status"].IsNull()) {
-        LOG(ERROR) << JsonParser_["status"]["message"].GetString();
+    if(!JsonParser_.IsObject() || JsonParser_.HasParseError())return true;
+    if(JsonParser_.HasMember("status")) {
+        LOG(ERROR) << "API Response -> " << JsonParser_["status"]["message"].GetString();
         return true;
     }
     return false;
@@ -111,31 +112,31 @@ SpectatorV4 RiotAPI::GetSummonerActiveGame(const SummonerV4& Summoner) {
 SummonerV4::SummonerV4(Json::Document& Data) {
     accountId = Data["accountId"].GetString();
     profileIconId = Data["profileIconId"].GetInt();
-    revisionDate = Data["revisionDate"].GetInt();
+    revisionDate = Data["revisionDate"].GetInt64();
     name = Data["name"].GetString();
     id = Data["id"].GetString();
     puuid = Data["puuid"].GetString();
-    summonerLevel = Data["summonerLevel"].GetInt();
+    summonerLevel = Data["summonerLevel"].GetInt64();
 }
 
 const char* SummonerV4::URLPath_ = "/lol/summoner/v4/summoners/";
 
 SpectatorV4::SpectatorV4(rapidjson::Document& Data) {
-    gameId = Data["gameId"].GetInt();
+    gameId = Data["gameId"].GetInt64();
     gameType = Data["gameType"].GetString();
-    gameStartTime = Data["gameStartTime"].GetInt();
-    mapId = Data["mapId"].GetInt();
-    gameLength = Data["gameLength"].GetInt();
+    gameStartTime = Data["gameStartTime"].GetInt64();
+    mapId = Data["mapId"].GetInt64();
+    gameLength = Data["gameLength"].GetInt64();
     platformId = Data["platformId"].GetString();
     gameMode = Data["gameMode"].GetString();
 
     const auto& BannedArray = Data["bannedChampions"].GetArray();
     for(const auto& entry : BannedArray) {
         const auto& Obj = entry.GetObj();
-        bannedChampions.emplace_back(Champions{Obj["pickTurn"].GetInt(), Obj["championId"].GetInt(), Obj["teamId"].GetInt()});
+        bannedChampions.emplace_back(Champions{Obj["pickTurn"].GetInt(), Obj["championId"].GetInt64(), Obj["teamId"].GetInt64()});
     }
 
-    gameQueueConfigId = Data["gameQueueConfigId"].GetInt();
+    gameQueueConfigId = Data["gameQueueConfigId"].GetInt64();
     ObserverEncryptionKey = Data["observers"]["encryptionKey"].GetString();
 
     const auto& SummonerArray = Data["participants"].GetArray();
@@ -143,11 +144,11 @@ SpectatorV4::SpectatorV4(rapidjson::Document& Data) {
         const auto& Obj = entry.GetObj();
         Perk perks;
         const auto& perk = Obj["perks"].GetObj();
-        std::vector<long> perkIds;
+        std::vector<int64_t> perkIds;
         for(const auto& Id : perk["perkIds"].GetArray()) {
-            perkIds.emplace_back(Id.GetInt());
+            perkIds.emplace_back(Id.GetInt64());
         }
-        perks = Perk{perkIds, perk["perkStyle"].GetInt(), perk["perkSubStyle"].GetInt()};
+        perks = Perk{perkIds, perk["perkStyle"].GetInt64(), perk["perkSubStyle"].GetInt64()};
 
         std::vector<GameCustomizationObject> Objects;
         for(const auto& CustomObjects : Obj["gameCustomizationObjects"].GetArray()) {
@@ -156,15 +157,15 @@ SpectatorV4::SpectatorV4(rapidjson::Document& Data) {
         }
 
         participants.emplace_back(GameParticipant{
-            Obj["championId"].GetInt(),
+            Obj["championId"].GetInt64(),
             perks,
-            Obj["profileIconId"].GetInt(),
+            Obj["profileIconId"].GetInt64(),
             Obj["bot"].GetBool(),
-            Obj["teamId"].GetInt(),
+            Obj["teamId"].GetInt64(),
             Obj["summonerName"].GetString(),
             Obj["summonerId"].GetString(),
-            Obj["spell1Id"].GetInt(),
-            Obj["spell2Id"].GetInt(),
+            Obj["spell1Id"].GetInt64(),
+            Obj["spell2Id"].GetInt64(),
             Objects
         });
     }

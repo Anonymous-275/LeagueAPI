@@ -15,54 +15,54 @@ public:
     static const char* URLPath_;
     std::string accountId;
     int profileIconId;
-    long revisionDate;
+    int64_t revisionDate;
     std::string name;
     std::string id;
     std::string puuid;
-    long summonerLevel;
+    int64_t summonerLevel;
 };
 
 class SpectatorV4 {
 public:
     struct Champions {
         int pickTurn;
-        long championId;
-        long teamId;
+        int64_t championId;
+        int64_t teamId;
     };
     struct Perk {
-        std::vector<long> perkIds;
-        long perkStyle;
-        long perkSubStyle;
+        std::vector<int64_t> perkIds;
+        int64_t perkStyle;
+        int64_t perkSubStyle;
     };
     struct GameCustomizationObject {
         std::string category;
         std::string content;
     };
     struct GameParticipant {
-        long championId;
+        int64_t championId;
         Perk perks;
-        long profileIconId;
+        int64_t profileIconId;
         bool bot;
-        long teamId;
+        int64_t teamId;
         std::string summonerName;
         std::string summonerId;
-        long spell1Id;
-        long spell2Id;
+        int64_t spell1Id;
+        int64_t spell2Id;
         std::vector<GameCustomizationObject> gameCustomizationObjects;
     };
 public:
     SpectatorV4() = default;
     explicit SpectatorV4(Json::Document& Data);
     static const char* URLPath_;
-    long gameId;
+    int64_t gameId;
     std::string gameType;
-    long gameStartTime;
-    long mapId;
-    long gameLength;
+    int64_t gameStartTime;
+    int64_t mapId;
+    int64_t gameLength;
     std::string platformId;
     std::string gameMode;
     std::vector<Champions> bannedChampions;
-    long gameQueueConfigId;
+    int64_t gameQueueConfigId;
     std::string ObserverEncryptionKey;
     std::vector<GameParticipant> participants;
 };

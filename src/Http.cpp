@@ -22,9 +22,10 @@ std::string HTTP::Get(const std::string &IP) {
     std::string Ret;
 
     if(res.error() == httplib::Error::Success){
-        if(res->status == 200){
-            Ret = res->body;
-        }else LOG(ERROR) << res->reason;
+        Ret = res->body;
+        if(res->status != 200) {
+            LOG(ERROR) << res->status << " -> " << res->reason;
+        }
     } else {
         LOG(ERROR) << "HTTP Get failed on " << httplib::to_string(res.error());
     }

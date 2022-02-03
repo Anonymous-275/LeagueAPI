@@ -7,9 +7,13 @@
 #include "Logger.h"
 
 int main() {
-    RiotAPI API("RGAPI-18b2f4ff-7501-46fa-9d13-3f1adba229ae", RiotAPI::EUW);
-    auto Summoner = API.SummonerByName("Sam390");
+    RiotAPI API("RGAPI-af2ded68-2272-460e-a0cb-678dda32ee33", RiotAPI::NA);
+    auto Summoner = API.SummonerByName("Buelow");
     LOG(INFO) << Summoner.name << " level " << Summoner.summonerLevel;
+    auto Match = API.GetSummonerActiveGame(Summoner);
+    for(const auto& entry : Match.participants) {
+        LOG(INFO) << entry.summonerName << " : champID " << entry.championId << " : team " << entry.teamId;
+    }
     return 0;
 }
 
