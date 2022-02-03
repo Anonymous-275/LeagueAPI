@@ -101,6 +101,13 @@ SummonerV4 RiotAPI::SummonerByToken() {
     return {};
 }
 
+SpectatorV4 RiotAPI::GetSummonerActiveGame(const SummonerV4& Summoner) {
+    Request(APILink_ + SpectatorV4::URLPath_ + "active-games/by-summoner/" + Summoner.id);
+    if(!HasErrors())
+        return SpectatorV4(JsonParser_);
+    return {};
+}
+
 SummonerV4::SummonerV4(Json::Document& Data) {
     accountId = Data["accountId"].GetString();
     profileIconId = Data["profileIconId"].GetInt();
@@ -112,3 +119,56 @@ SummonerV4::SummonerV4(Json::Document& Data) {
 }
 
 const char* SummonerV4::URLPath_ = "/lol/summoner/v4/summoners/";
+
+SpectatorV4::SpectatorV4(rapidjson::Document& Data) {
+    gameId = Data["gameId"].GetInt();
+    gameType = Data["gameType"].GetString();
+    gameStartTime = Data["gameStartTime"].GetInt();
+    mapId = Data["mapId"].GetInt();
+    gameLength = Data["gameLength"].GetInt();
+    platformId = Data["platformId"].GetString();
+    gameMode = Data["gameMode"].GetString();
+
+    const auto& BannedArray = Data["bannedChampions"].GetArray();
+    for(const auto& entry : BannedArray) {
+        const auto& Obj = entry.GetObj();
+        bannedChampions.emplace_back(Champions{Obj["pickTurn"].GetInt(), Obj["championId"].GetInt(), Obj["teamId"].GetInt()});
+    }
+
+    gameQueueConfigId = Data["gameQueueConfigId"].GetInt();
+    ObserverEncryptionKey = Data["observers"]["encryptionKey"].GetString();
+
+    const auto& SummonerArray = Data["participants"].GetArray();
+    for(const auto& entry : SummonerArray) {
+        const auto& Obj = entry.GetObj();
+        Perk perks;
+        const auto& perk = Obj["perks"].GetObj();
+        std::vector<long> perkIds;
+        for(const auto& Id : perk["perkIds"].GetArray()) {
+            perkIds.emplace_back(Id.GetInt());
+        }
+        perks = Perk{perkIds, perk["perkStyle"].GetInt(), perk["perkSubStyle"].GetInt()};
+
+        std::vector<GameCustomizationObject> Objects;
+        for(const auto& CustomObjects : Obj["gameCustomizationObjects"].GetArray()) {
+            const auto& CObj = entry.GetObj();
+            Objects.emplace_back(GameCustomizationObject{CObj["category"].GetString(), CObj["content"].GetString()});
+        }
+
+        participants.emplace_back(GameParticipant{
+            Obj["championId"].GetInt(),
+            perks,
+            Obj["profileIconId"].GetInt(),
+            Obj["bot"].GetBool(),
+            Obj["teamId"].GetInt(),
+            Obj["summonerName"].GetString(),
+            Obj["summonerId"].GetString(),
+            Obj["spell1Id"].GetInt(),
+            Obj["spell2Id"].GetInt(),
+            Objects
+        });
+    }
+}
+
+
+const char* SpectatorV4::URLPath_ = "/lol/spectator/v4/";

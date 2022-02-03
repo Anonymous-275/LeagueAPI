@@ -4,6 +4,7 @@
 ///
 
 #pragma once
+#include <vector>
 #include <string>
 #include "Json.h"
 
@@ -21,6 +22,51 @@ public:
     long summonerLevel;
 };
 
+class SpectatorV4 {
+public:
+    struct Champions {
+        int pickTurn;
+        long championId;
+        long teamId;
+    };
+    struct Perk {
+        std::vector<long> perkIds;
+        long perkStyle;
+        long perkSubStyle;
+    };
+    struct GameCustomizationObject {
+        std::string category;
+        std::string content;
+    };
+    struct GameParticipant {
+        long championId;
+        Perk perks;
+        long profileIconId;
+        bool bot;
+        long teamId;
+        std::string summonerName;
+        std::string summonerId;
+        long spell1Id;
+        long spell2Id;
+        std::vector<GameCustomizationObject> gameCustomizationObjects;
+    };
+public:
+    SpectatorV4() = default;
+    explicit SpectatorV4(Json::Document& Data);
+    static const char* URLPath_;
+    long gameId;
+    std::string gameType;
+    long gameStartTime;
+    long mapId;
+    long gameLength;
+    std::string platformId;
+    std::string gameMode;
+    std::vector<Champions> bannedChampions;
+    long gameQueueConfigId;
+    std::string ObserverEncryptionKey;
+    std::vector<GameParticipant> participants;
+};
+
 class RiotAPI {
 public:
     enum Region {
@@ -35,6 +81,8 @@ public: //SummonerV4
     SummonerV4 SummonerByPUUID(const std::string& ID);
     SummonerV4 SummonerByID(const std::string& ID);
     SummonerV4 SummonerByToken();
+public: //SpectatorV4
+    SpectatorV4 GetSummonerActiveGame(const SummonerV4& Summoner);
 private:
     void Request(const std::string& Option);
     Json::Document JsonParser_;
