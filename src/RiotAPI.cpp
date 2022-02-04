@@ -65,7 +65,7 @@ void RiotAPI::RequestNoKey(const std::string& Option) {
 
 bool RiotAPI::HasErrors() {
     if((!JsonParser_.IsObject() && !JsonParser_.IsArray()) || JsonParser_.HasParseError())return true;
-    if(JsonParser_.HasMember("status")) {
+    if(JsonParser_.IsObject() && JsonParser_.HasMember("status")) {
         LOG(ERROR) << "API Response -> " << JsonParser_["status"]["message"].GetString();
         return true;
     }
