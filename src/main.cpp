@@ -10,10 +10,11 @@ int main() {
     RiotAPI API("RGAPI-af2ded68-2272-460e-a0cb-678dda32ee33", RiotAPI::EUW);
     auto Summoner = API.SummonerByName("Anonymous275");
     LOG(INFO) << Summoner.name << " level " << Summoner.summonerLevel;
-    auto Match = API.GetSummonerActiveGame(Summoner);
-    for(const auto& entry : Match.participants) {
+    LOG(INFO) << API.GetChampNamesByIDs({99})[0];
+    //auto Match = API.GetSummonerActiveGame(Summoner);
+    /*for(const auto& entry : Match.participants) {
         LOG(INFO) << entry.summonerName << " : champID " << entry.championId << " : team " << entry.teamId;
-    }
+    }*/
     return 0;
 }
 

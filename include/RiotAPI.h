@@ -83,8 +83,11 @@ public: //SummonerV4
     SummonerV4 SummonerByToken();
 public: //SpectatorV4
     SpectatorV4 GetSummonerActiveGame(const SummonerV4& Summoner);
+public: //ddragon
+    std::vector<std::string> GetChampNamesByIDs(const std::vector<int64_t>& IDs);
 private:
     void Request(const std::string& Option);
+    void RequestNoKey(const std::string& Option);
     Json::Document JsonParser_;
     std::string APILink_{};
     std::string APIKey_{};

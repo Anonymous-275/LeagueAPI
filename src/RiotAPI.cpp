@@ -58,8 +58,13 @@ void RiotAPI::Request(const std::string& Option) {
     JsonParser_.Parse(HTTP::Get(Option + "?api_key=" + APIKey_).c_str());
 }
 
+void RiotAPI::RequestNoKey(const std::string& Option) {
+    JsonParser_.SetObject();
+    JsonParser_.Parse(HTTP::Get(Option).c_str());
+}
+
 bool RiotAPI::HasErrors() {
-    if(!JsonParser_.IsObject() || JsonParser_.HasParseError())return true;
+    if((!JsonParser_.IsObject() && !JsonParser_.IsArray()) || JsonParser_.HasParseError())return true;
     if(JsonParser_.HasMember("status")) {
         LOG(ERROR) << "API Response -> " << JsonParser_["status"]["message"].GetString();
         return true;
@@ -108,6 +113,25 @@ SpectatorV4 RiotAPI::GetSummonerActiveGame(const SummonerV4& Summoner) {
         return SpectatorV4(JsonParser_);
     return {};
 }
+
+std::vector<std::string> RiotAPI::GetChampNamesByIDs(const std::vector<int64_t>& IDs) {
+    RequestNoKey("https://ddragon.leagueoflegends.com/api/versions.json");
+    if(HasErrors())return {};
+    std::string Ver = JsonParser_.GetArray()[0].GetString();
+    RequestNoKey("https://ddragon.leagueoflegends.com/cdn/"+Ver+"/data/en_US/champion.json");
+    if(HasErrors())return {};
+    std::vector<std::string> Names;
+    const auto& Champions = JsonParser_["data"].GetObj();
+    for (const auto& entry : Champions) {
+        for(int64_t ID : IDs) {
+            if (entry.value["key"].GetString() == std::to_string(ID)) {
+                Names.emplace_back(entry.name.GetString());
+            }
+        }
+    }
+    return Names;
+}
+
 
 SummonerV4::SummonerV4(Json::Document& Data) {
     accountId = Data["accountId"].GetString();
