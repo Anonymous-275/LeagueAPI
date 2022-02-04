@@ -9,5 +9,5 @@
 class HTTP {
 public:
     static std::string Post(const std::string& IP, const std::string& Fields);
-    static std::string Get(const std::string &IP);
+    static std::string Get(const std::string &IP, const std::string& Auth = "");
 };

@@ -10,7 +10,7 @@
 #include <mutex>
 
 
-std::string HTTP::Get(const std::string &IP) {
+std::string HTTP::Get(const std::string &IP, const std::string& Auth) {
     static std::mutex Lock;
     std::scoped_lock Guard(Lock);
 
@@ -18,9 +18,15 @@ std::string HTTP::Get(const std::string &IP) {
 
     httplib::Client cli(IP.substr(0, pos));
     cli.set_connection_timeout(std::chrono::seconds(5));
-    auto res = cli.Get(IP.substr(pos).c_str());
-    std::string Ret;
 
+    if(!Auth.empty()) {
+        cli.set_basic_auth("riot", Auth.c_str());
+        cli.enable_server_certificate_verification(false);
+    }
+
+    auto res = cli.Get(IP.substr(pos).c_str());
+
+    std::string Ret;
     if(res.error() == httplib::Error::Success){
         Ret = res->body;
         if(res->status != 200) {

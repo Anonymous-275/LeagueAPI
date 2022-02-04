@@ -85,6 +85,8 @@ public: //SpectatorV4
     SpectatorV4 GetSummonerActiveGame(const SummonerV4& Summoner);
 public: //ddragon
     std::vector<std::string> GetChampNamesByIDs(const std::vector<int64_t>& IDs);
+public: //LOCAL
+    std::string GetLocalSummonerName();
 private:
     void Request(const std::string& Option);
     void RequestNoKey(const std::string& Option);

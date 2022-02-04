@@ -8,6 +8,11 @@
 #include <iostream>
 #include <utility>
 #include "Http.h"
+#include <psapi.h>
+#include <tlhelp32.h>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 RiotAPI::RiotAPI(std::string Key, Region region) : APIKey_(std::move(Key)) {
     Log::Init();
@@ -54,12 +59,10 @@ RiotAPI::RiotAPI(std::string Key, Region region) : APIKey_(std::move(Key)) {
 }
 
 void RiotAPI::Request(const std::string& Option) {
-    JsonParser_.SetObject();
     JsonParser_.Parse(HTTP::Get(Option + "?api_key=" + APIKey_).c_str());
 }
 
 void RiotAPI::RequestNoKey(const std::string& Option) {
-    JsonParser_.SetObject();
     JsonParser_.Parse(HTTP::Get(Option).c_str());
 }
 
@@ -130,6 +133,48 @@ std::vector<std::string> RiotAPI::GetChampNamesByIDs(const std::vector<int64_t>&
         }
     }
     return Names;
+}
+
+uint32_t GetPID() {
+    SetLastError(0);
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if(Process32First(Snapshot, &pe32)) {
+        do{
+            if(std::string("LeagueClient.exe") == pe32.szExeFile)break;
+        }while(Process32Next(Snapshot, &pe32));
+    }
+    if(Snapshot != INVALID_HANDLE_VALUE) {
+        CloseHandle(Snapshot);
+    }
+    if(GetLastError() != 0)return 0;
+    return pe32.th32ProcessID;
+}
+
+std::string RiotAPI::GetLocalSummonerName() {
+    uint32_t PID = GetPID();
+    if(PID == 0)return "";
+    auto Handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetPID());
+    std::string Path(MAX_PATH, 0);
+    GetModuleFileNameExA(Handle, nullptr, &Path[0], MAX_PATH);
+    CloseHandle(Handle);
+    Path = fs::path(Path).parent_path().string() + "\\lockfile";
+    if(!fs::exists(Path))return "";
+    std::ifstream Key(Path);
+    if(!Key.is_open())return "";
+    auto Size = fs::file_size(Path);
+    std::string Buffer(Size, 0);
+    Key.read(&Buffer[0], std::streamsize(Size));
+    Key.close();
+    Buffer = Buffer.substr(Buffer.find(':')+1);
+    Buffer = Buffer.substr(Buffer.find(':')+1);
+    std::string Port = Buffer.substr(0, Buffer.find(':'));
+    Buffer = Buffer.substr(Buffer.find(':')+1);
+    std::string Pass = Buffer.substr(0, Buffer.find(':'));
+    JsonParser_.Parse(HTTP::Get("https://127.0.0.1:"+Port+"/lol-summoner/v1/current-summoner", Pass).c_str());
+    if(HasErrors() || !JsonParser_.HasMember("displayName"))return "";
+    return JsonParser_["displayName"].GetString();
 }
 
 
