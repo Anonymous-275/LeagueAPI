@@ -135,8 +135,9 @@ SpectatorV4::SpectatorV4(rapidjson::Document& Data) {
         const auto& Obj = entry.GetObj();
         bannedChampions.emplace_back(Champions{Obj["pickTurn"].GetInt(), Obj["championId"].GetInt64(), Obj["teamId"].GetInt64()});
     }
-
-    gameQueueConfigId = Data["gameQueueConfigId"].GetInt64();
+    if(Data.HasMember("gameQueueConfigId")) {
+        gameQueueConfigId = Data["gameQueueConfigId"].GetInt64();
+    }
     ObserverEncryptionKey = Data["observers"]["encryptionKey"].GetString();
 
     const auto& SummonerArray = Data["participants"].GetArray();
